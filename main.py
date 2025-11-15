@@ -107,10 +107,11 @@ if __name__ == '__main__':
                 if opcao == '1':
                     id_professor = cp.selecionar_id_professor(id_usuario, conexao)
                     especialidades = vep.verificar_especialidades(id_professor,conexao)
+
                     if not especialidades:
                         print('Erro com cadastro de especialidades do professor (favor conferir com algum administrador)')
                     print(especialidades)
-                    df_materias_sem_professores = vp.mostrar_materias_sem_professores(conexao)
+                    df_materias_sem_professores = vp.mostrar_materias_sem_professores(especialidades,conexao)
 
                     if df_materias_sem_professores is not None and not df_materias_sem_professores.empty:
 
