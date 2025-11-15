@@ -29,10 +29,11 @@ def verificar_materias_disponiveis(id_aluno,semestre_atual,limite_ch,conn):
                 SELECT
                     t.id_turma,
                     m.NOME AS nome_materia,
+                    m.tipo,
                     ds.DIA_SEMANA || ' - ' ||
                         TO_CHAR(tr.HORA_INICIO, 'HH24:MI') || ' a ' ||
                         TO_CHAR(tr.HORA_FIM, 'HH24:MI') AS TURNO_materia,
-                    p.NOME AS nome_professor
+                    p.NOME AS NOME_PROFESSOR
                 FROM
                     turmas t
                 LEFT JOIN

@@ -27,7 +27,6 @@ def cadastrar_materia_professor(id_materia, id_professor, conn):
             "id_professor": id_professor
         })
         conn.commit()
-        conn.close()
 
     except Exception as e:
         print("Erro ao cadastrar matéria para professor:", e)

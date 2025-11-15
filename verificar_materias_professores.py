@@ -6,7 +6,8 @@ def mostrar_materias_sem_professores(conn):
     sql_materias_sem_professores = """
                                     SELECT
                                         ID_MATERIA,
-                                        M.NOME
+                                        M.NOME,
+                                        m.tipo as tipo
                                     FROM
                                         MATERIAS M
                                     WHERE 

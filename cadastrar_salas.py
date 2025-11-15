@@ -1,13 +1,14 @@
-from pandas.errors import DatabaseError
 
 
-def cadastrar_sala_materia(id_materia,id_professor,id_sala,id_semana,id_turno,vagas_total, conn):
+def cadastrar_sala_materia(id_materia, id_professor, id_sala, id_semana, id_turno, vagas_total, conn):
     try:
         cursor = conn.cursor()
 
         sql_insert = """ 
-         INTO TURMAS (ID_MATERIA, ID_PROFESSOR, ID_SALA, ID_SEMANA, ID_TURNO, VAGAS_TOTAL,STATUS) values 
-         ( :ID_MATERIA, :ID_PROFESSOR, :ID_SALA, :ID_SEMANA, :ID_TURNO, :VAGAS_TOTAL, 'ABERTA') )
+            INSERT INTO TURMAS 
+            (ID_MATERIA, ID_PROFESSOR, ID_SALA, ID_SEMANA, ID_TURNO, VAGAS_TOTAL, STATUS)
+            VALUES 
+            (:id_materia, :id_professor, :id_sala, :id_semana, :id_turno, :vagas_total, 'ABERTA')
         """
 
         cursor.execute(sql_insert, {
@@ -20,7 +21,8 @@ def cadastrar_sala_materia(id_materia,id_professor,id_sala,id_semana,id_turno,va
         })
 
         conn.commit()
+        cursor.close()
+
     except Exception as e:
         print("Erro ao cadastrar sala para matéria:", e)
-    except DatabaseError as e:
-        print("Erro de banco de dados ao cadastrar sala para matéria:", e)
+
