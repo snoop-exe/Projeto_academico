@@ -22,5 +22,3 @@ def calcular_dias_e_unibe(ch):
     return dias_obrigatorios,faltantes
 
 
-
-

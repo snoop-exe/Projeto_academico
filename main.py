@@ -9,6 +9,7 @@ import realizar_matricula_aluno as ra
 import verificar_carga_horaria_aluno as vca
 import verificar_especialidade_professor as vep
 import calcular_dias_para_grade as cdg
+import cadastrar_informativo_professor as cip
 
 
 if __name__ == '__main__':
@@ -192,11 +193,13 @@ if __name__ == '__main__':
 
                                         print("Solicitação realizada com sucesso!")
 
-
                                     else:
                                         print("Sala selecionada inválida.")
                                 else:
                                     sala_selecionadas = []
+
+                                    id_materia = int(materia_selecionada.iloc[0]['ID_MATERIA'])
+
                                     for i in range(dias_obrigatorios):
 
                                         print(f'Selecionando sala {i+1} de {dias_obrigatorios}')
@@ -234,7 +237,7 @@ if __name__ == '__main__':
                                             )
 
                                             if erro is False:
-                                                print("Erro ao cadastrar matéria para professor:", erro)
+                                                print(erro)
                                                 continue
 
                                             id_sala = int(sala_selecionada.iloc[0]['ID_SALA'])
@@ -258,7 +261,13 @@ if __name__ == '__main__':
                                             print("Sala cadastrada com sucesso!")
                                         else:
                                             print("Sala selecionada inválida.")
+                                            continue
 
+                                    erro = cip.cadastrar_horas_pendentes(faltantes,id_professor,id_materia,conexao)
+                                    if erro:
+                                        print('Erro: ',erro)
+
+                                    print("Solicitação realizada com sucesso!")
                             elif confirmar.lower() == 'n':
                                 print("Solicitação cancelada.")
                             else:

@@ -30,7 +30,6 @@ def cadastrar_materia_professor(id_materia, id_professor, conn):
     cursor.execute(sql_materia_professor,{'id_materia':id_materia,'id_professor':id_professor})
     resultado = cursor.fetchall()
     if resultado:
-        print("Matéria já cadastrada para este professor.")
         return True
     try:
 
@@ -45,5 +44,5 @@ def cadastrar_materia_professor(id_materia, id_professor, conn):
         conn.commit()
         return True
     except Exception as e:
-        return False
+        return False, 'Erro ao cadastrar matéria para professor: ' + str(e)
 
