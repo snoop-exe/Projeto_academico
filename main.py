@@ -8,6 +8,7 @@ import cadastrar_professor as cp
 import realizar_matricula_aluno as ra
 import verificar_carga_horaria_aluno as vca
 import verificar_especialidade_professor as vep
+import calcular_dias_para_grade as cdg
 
 
 if __name__ == '__main__':
@@ -111,12 +112,13 @@ if __name__ == '__main__':
                     if not especialidades:
                         print('Erro com cadastro de especialidades do professor (favor conferir com algum administrador)')
                     print(especialidades)
+
                     df_materias_sem_professores = vp.mostrar_materias_sem_professores(especialidades,conexao)
 
                     if df_materias_sem_professores is not None and not df_materias_sem_professores.empty:
 
                         print("Matérias sem professores atribuídos: \n")
-                        print(df_materias_sem_professores[['Escolha','NOME','TIPO']].to_string(index=False))
+                        print(df_materias_sem_professores[['Escolha','NOME','CARGA_HORARIA','TIPO']].to_string(index=False))
                         escolha = input("\n\nDigite o número da matéria que deseja solicitar (ou 'sair' para voltar): ")
                         print(df_materias_sem_professores.columns)
                         if escolha.lower() == 'sair':
@@ -132,59 +134,130 @@ if __name__ == '__main__':
                         tipo_sala = df_materias_sem_professores.iloc[0]['TIPO']
 
                         if not materia_selecionada.empty:
+
                             confirmar = input(f"Confirma a solicitação para lecionar a matéria '{materia_selecionada.iloc[0]['NOME']}'? (s/n): ")
 
                             if confirmar.lower() == 's':
-                                print('Salas disponíveis para alocação:')
-                                df_salas_disponiveis = vsd.verificar_salas_disponiveis(tipo_sala,conexao)
-                                print(df_salas_disponiveis[['Escolha','NOME_SALA','TURNO']].to_string(index=False))
-                                escolha_sala = input("Digite o número da sala que deseja alocar (ou 'sair' para voltar): ")
+                                ch = int(materia_selecionada.iloc[0]['CARGA_HORARIA'])
+                                dias_obrigatorios, faltantes = cdg.calcular_dias_e_unibe(ch)
+                                if dias_obrigatorios == 1:
 
-                                if escolha_sala.lower() == 'sair':
-                                    continue
+                                    print('Salas disponíveis para alocação:')
+                                    df_salas_disponiveis = vsd.verificar_salas_disponiveis(tipo_sala,conexao)
 
-                                if not escolha_sala.isdigit():
-                                    print("Entrada inválida. Por favor, digite apenas números válidos. \n\n")
-                                    continue
+                                    print(df_salas_disponiveis[['Escolha','NOME_SALA','TURNO']].to_string(index=False))
+                                    escolha_sala = input("Digite o número da sala que deseja alocar (ou 'sair' para voltar): ")
 
-                                indice_sala_selecionada = int(escolha_sala)
-
-                                sala_selecionada = df_salas_disponiveis[df_salas_disponiveis['Escolha'] == indice_sala_selecionada]
-
-                                if not sala_selecionada.empty:
-                                    id_materia = int(materia_selecionada.iloc[0]['ID_MATERIA'])
-                                    print(id_materia)
-                                    erro = cp.cadastrar_materia_professor(
-                                        int(materia_selecionada.iloc[0]['ID_MATERIA']),
-                                        id_professor,
-                                        conexao
-                                    )
-
-                                    if erro:
-                                        print("Erro ao cadastrar matéria para professor:", erro)
+                                    if escolha_sala.lower() == 'sair':
                                         continue
 
-                                    id_sala = int(sala_selecionada.iloc[0]['ID_SALA'])
-                                    id_turno = int(sala_selecionada.iloc[0]['ID_TURNO'])
-                                    vagas = 40
-
-                                    erro = cs.cadastrar_sala_materia(
-                                        int(materia_selecionada.iloc[0]['ID_MATERIA']),
-                                        id_professor,
-                                        int(id_sala),
-                                        int(sala_selecionada.iloc[0]['ID_SEMANA']),
-                                        int(sala_selecionada.iloc[0]['ID_TURNO']),
-                                        vagas,
-                                        conexao
-                                    )
-
-                                    if erro:
-                                        print("Erro ao cadastrar sala para matéria:", erro)
+                                    if not escolha_sala.isdigit():
+                                        print("Entrada inválida. Por favor, digite apenas números válidos. \n\n")
                                         continue
 
-                                    print("Solicitação realizada com sucesso!")
+                                    indice_sala_selecionada = int(escolha_sala)
+
+                                    sala_selecionada = df_salas_disponiveis[df_salas_disponiveis['Escolha'] == indice_sala_selecionada]
+
+                                    if not sala_selecionada.empty:
+                                        id_materia = int(materia_selecionada.iloc[0]['ID_MATERIA'])
+                                        print(id_materia)
+                                        erro = cp.cadastrar_materia_professor(
+                                            int(materia_selecionada.iloc[0]['ID_MATERIA']),
+                                            id_professor,
+                                            conexao
+                                        )
+
+                                        if erro is False:
+                                            print("Erro ao cadastrar matéria para professor:", erro)
+                                            continue
+
+                                        id_sala = int(sala_selecionada.iloc[0]['ID_SALA'])
+                                        id_turno = int(sala_selecionada.iloc[0]['ID_TURNO'])
+                                        vagas = 40
+
+                                        erro = cs.cadastrar_sala_materia(
+                                            int(materia_selecionada.iloc[0]['ID_MATERIA']),
+                                            id_professor,
+                                            int(id_sala),
+                                            int(sala_selecionada.iloc[0]['ID_SEMANA']),
+                                            int(sala_selecionada.iloc[0]['ID_TURNO']),
+                                            vagas,
+                                            conexao
+                                        )
+
+                                        if erro:
+                                            print("Erro ao cadastrar sala para matéria:", erro)
+                                            continue
+
+                                        print("Solicitação realizada com sucesso!")
+
+
+                                    else:
+                                        print("Sala selecionada inválida.")
                                 else:
-                                    print("Sala selecionada inválida.")
+                                    sala_selecionadas = []
+                                    for i in range(dias_obrigatorios):
+
+                                        print(f'Selecionando sala {i+1} de {dias_obrigatorios}')
+                                        print('Salas disponíveis para alocação:')
+
+                                        df_salas_disponiveis = vsd.verificar_salas_disponiveis(tipo_sala,conexao)
+
+                                        if sala_selecionadas:
+                                            df_salas_disponiveis = df_salas_disponiveis[
+                                                ~df_salas_disponiveis['ID_SALA'].isin(sala_selecionadas)]
+
+                                        print(df_salas_disponiveis[['Escolha','NOME_SALA','TURNO']].to_string(index=False))
+
+                                        escolha_sala = input("Digite o número da sala que deseja alocar (ou 'sair' para voltar): ")
+
+                                        if escolha_sala.lower() == 'sair':
+                                            continue
+
+                                        if not escolha_sala.isdigit():
+                                            print("Entrada inválida. Por favor, digite apenas números válidos. \n\n")
+                                            continue
+
+                                        indice_sala_selecionada = int(escolha_sala)
+
+                                        sala_selecionada = df_salas_disponiveis[df_salas_disponiveis['Escolha'] == indice_sala_selecionada]
+
+                                        if not sala_selecionada.empty:
+                                            sala_selecionadas.append(int(sala_selecionada.iloc[0]['ID_SALA']))
+                                            id_materia = int(materia_selecionada.iloc[0]['ID_MATERIA'])
+                                            print(id_materia)
+                                            erro = cp.cadastrar_materia_professor(
+                                                int(materia_selecionada.iloc[0]['ID_MATERIA']),
+                                                id_professor,
+                                                conexao
+                                            )
+
+                                            if erro is False:
+                                                print("Erro ao cadastrar matéria para professor:", erro)
+                                                continue
+
+                                            id_sala = int(sala_selecionada.iloc[0]['ID_SALA'])
+                                            id_turno = int(sala_selecionada.iloc[0]['ID_TURNO'])
+                                            vagas = 40
+
+                                            erro = cs.cadastrar_sala_materia(
+                                                int(materia_selecionada.iloc[0]['ID_MATERIA']),
+                                                id_professor,
+                                                int(id_sala),
+                                                int(sala_selecionada.iloc[0]['ID_SEMANA']),
+                                                int(sala_selecionada.iloc[0]['ID_TURNO']),
+                                                vagas,
+                                                conexao
+                                            )
+
+                                            if erro:
+                                                print("Erro ao cadastrar sala para matéria:", erro)
+                                                continue
+
+                                            print("Sala cadastrada com sucesso!")
+                                        else:
+                                            print("Sala selecionada inválida.")
 
                             elif confirmar.lower() == 'n':
                                 print("Solicitação cancelada.")

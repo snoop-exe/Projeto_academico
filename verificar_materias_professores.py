@@ -11,6 +11,7 @@ def mostrar_materias_sem_professores(lista_especialidades, conn):
         SELECT
             ID_MATERIA,
             M.NOME,
+            m.ch as CARGA_HORARIA,
             M.TIPO AS tipo
         FROM
             MATERIAS M

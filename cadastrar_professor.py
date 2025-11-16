@@ -1,4 +1,4 @@
-from pandas.errors import DatabaseError
+
 
 def selecionar_id_professor(id_usuario,conn):
     cursor = conn.cursor()
@@ -16,8 +16,24 @@ def selecionar_id_professor(id_usuario,conn):
 
 
 def cadastrar_materia_professor(id_materia, id_professor, conn):
+    cursor = conn.cursor()
+    sql_materia_professor = """ 
+                            select
+                                *
+                            from
+                                materias_professores t
+                            where 
+                                t.id_materia = :id_materia
+                            and
+                                t.id_professor = :id_professor
+                            """
+    cursor.execute(sql_materia_professor,{'id_materia':id_materia,'id_professor':id_professor})
+    resultado = cursor.fetchall()
+    if resultado:
+        print("Matéria já cadastrada para este professor.")
+        return True
     try:
-        cursor = conn.cursor()
+
         sql_insert = """
             INSERT INTO materias_professores (id_materia, id_professor)
             VALUES (:id_materia, :id_professor)
@@ -27,8 +43,7 @@ def cadastrar_materia_professor(id_materia, id_professor, conn):
             "id_professor": id_professor
         })
         conn.commit()
-
+        return True
     except Exception as e:
-        print("Erro ao cadastrar matéria para professor:", e)
-    except DatabaseError as e:
-        print("Erro de banco de dados ao cadastrar matéria para professor:", e)
+        return False
+
